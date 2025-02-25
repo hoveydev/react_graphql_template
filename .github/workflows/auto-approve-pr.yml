@@ -1,0 +1,45 @@
+name: Auto-approve PRs by Admin
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  auto-approve:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if PR is created by admin
+        id: check-pr-author
+        run: |
+          if [ "${{ github.event.pull_request.user.login }}" == "hoveydev" ]; then
+            echo "is_admin=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_admin=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Auto-approve PR
+        if: steps.check-pr-author.outputs.is_admin == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+
+            // Check if the PR already has an approval from the admin
+            const hasAdminApproval = reviews.some(review => review.user.login === "YOUR_USERNAME" && review.state === "APPROVED");
+
+            if (!hasAdminApproval) {
+              await github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                event: "APPROVE",
+              });
+              console.log("PR approved by admin.");
+            } else {
+              console.log("PR already approved by admin.");
+            }
+          github-token: ${{ secrets.TOKEN_ADMIN }}
