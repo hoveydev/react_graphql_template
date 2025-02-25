@@ -1,0 +1,6 @@
+# TODO: Change file name
+# TODO: Define first type of first query
+type _CHANGE_ME_FIRST_TYPE {
+  fieldOne: String
+  fieldTwo: String
+}

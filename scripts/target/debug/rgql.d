@@ -1,0 +1,1 @@
+/Users/rhovey/Development/react_graphql_template/scripts/target/debug/rgql: /Users/rhovey/Development/react_graphql_template/scripts/src/main.rs /Users/rhovey/Development/react_graphql_template/scripts/src/setup.rs

@@ -1,0 +1,4 @@
+# TODO: Define first query
+type Query {
+  type: _CHANGE_ME_FIRST_TYPE
+}

@@ -1,0 +1,37 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "clean": "rm -rf ./build/*",
+    "compile": "tsc",
+    "copy-files": "shx cp -R ./src/schemas/ ./build",
+    "start": "npm run generate && npm run clean && npm run compile && npm run copy-files && nodemon ./build/index.js",
+    "dev": "npm run generate && ts-node-dev --respawn ./src/index.ts",
+    "generate": "graphql-codegen"
+  },
+  "keywords": [],
+  "author": "_CHANGE_ME_PROJECT_AUTHOR",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@apollo/datasource-rest": "^6.4.1",
+    "@apollo/server": "^4.11.3",
+    "@graphql-tools/load-files": "^7.0.0",
+    "@graphql-tools/merge": "^9.0.17",
+    "graphql": "^16.10.0",
+    "graphql-tag": "^2.12.6"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^5.0.3",
+    "@graphql-codegen/typescript": "^4.1.2",
+    "@graphql-codegen/typescript-resolvers": "^4.4.1",
+    "@types/node": "^22.10.5",
+    "nodemon": "^3.1.9",
+    "shx": "^0.3.4",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.3"
+  }
+}
