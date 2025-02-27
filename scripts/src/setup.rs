@@ -10,8 +10,8 @@ use walkdir::WalkDir;
 
 fn find_variables_and_rename(project_slug: String) {
   println!("{}", "Found Project Slug!".green());
-  let variable_reqex = Regex::new(r"\b_CHANGE_ME_\w+\b").unwrap();
-  let file_content_matches = find_var_matches(&project_slug, &variable_reqex);
+  let variable_regex = Regex::new(r"\b_CHANGE_ME_\w+\b").unwrap();
+  let file_content_matches = find_var_matches(&project_slug, &variable_regex);
   let (file_matches, dir_matches) = find_file_and_dir_matches(&project_slug);
   if file_content_matches.is_empty() && file_matches.is_empty() && dir_matches.is_empty() {
     println!(
@@ -118,13 +118,31 @@ fn find_project_slug_dir(path_arg: String) -> Result<String, String> {
 }
 
 fn find_var_matches(repo_path: &str, regex: &Regex) -> Vec<(String, String)> {
-  println!("Searching for variables...");
+  println!("{}", "Searching for variables in files...".green().bold());
   let mut matches = Vec::new();
-
-  // TODO: print statements that show where the searching is taking place?
-  for entry in WalkDir::new(repo_path).into_iter().filter_map(|e| e.ok()) {
+  let excluded_substrings = vec![
+    "/scripts/",
+    "/scripts/target",
+    "/old_scripts/",
+    "/node_modules/",
+  ];
+  let repo_path_buf = PathBuf::from(repo_path);
+  for entry in WalkDir::new(repo_path)
+    .into_iter()
+    .filter_map(|e| e.ok())
+    .filter(|entry| {
+      let full_path = entry.path();
+      let relative_path = full_path.strip_prefix(&repo_path_buf).unwrap_or(full_path);
+      let relative_path_str = relative_path.to_string_lossy();
+      !excluded_substrings
+        .iter()
+        .any(|substring| relative_path_str.contains(substring))
+    })
+  {
     if entry.file_type().is_file() {
       let file_path = entry.path().to_string_lossy().to_string();
+      let stripped_file_path = file_path.strip_prefix(&repo_path).expect("No path found");
+      println!("Searching: {stripped_file_path}"); // TODO: update to debug logs
       if let Ok(content) = fs::read_to_string(&file_path) {
         for capture in regex.captures_iter(&content) {
           if let Some(matched_var) = capture.get(0) {
@@ -138,12 +156,37 @@ fn find_var_matches(repo_path: &str, regex: &Regex) -> Vec<(String, String)> {
 }
 
 fn find_file_and_dir_matches(repo_path: &str) -> (Vec<(String, String)>, Vec<(String, String)>) {
+  println!(
+    "{}",
+    "Searching for variables in file and directory names..."
+      .green()
+      .bold()
+  );
   let mut file_matches = Vec::new();
   let mut dir_matches = Vec::new();
   let prefix = "_CHANGE_ME_";
-  for entry in WalkDir::new(repo_path).into_iter().filter_map(|e| e.ok()) {
+  let excluded_substrings = vec![
+    "/scripts/",
+    "/scripts/target",
+    "/old_scripts/",
+    "/node_modules/",
+  ];
+  let repo_path_buf = PathBuf::from(repo_path);
+  for entry in WalkDir::new(repo_path)
+    .into_iter()
+    .filter_map(|e| e.ok())
+    .filter(|entry| {
+      let full_path = entry.path();
+      let relative_path = full_path.strip_prefix(&repo_path_buf).unwrap_or(full_path);
+      let relative_path_str = relative_path.to_string_lossy();
+      !excluded_substrings
+        .iter()
+        .any(|substring| relative_path_str.contains(substring))
+    })
+  {
     let path = entry.path().to_string_lossy().to_string();
     let name = entry.file_name().to_string_lossy().to_string();
+    println!("Searching: {name}"); // TODO: update to debug logs
     if name.contains(prefix) {
       if entry.file_type().is_file() {
         file_matches.push((path, name));
