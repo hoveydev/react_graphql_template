@@ -21,6 +21,10 @@ fn find_variables_and_rename(project_slug: String) {
     );
     return;
   }
+  println!(
+    "{}",
+    "Variables found. Please rename the following:".green()
+  );
   let mut rename_map = std::collections::HashMap::new();
   for (_, var_name) in file_content_matches
     .iter()
@@ -141,8 +145,8 @@ fn find_var_matches(repo_path: &str, regex: &Regex) -> Vec<(String, String)> {
   {
     if entry.file_type().is_file() {
       let file_path = entry.path().to_string_lossy().to_string();
-      let stripped_file_path = file_path.strip_prefix(&repo_path).expect("No path found");
-      println!("Searching: {stripped_file_path}"); // TODO: update to debug logs
+      // let stripped_file_path = file_path.strip_prefix(&repo_path).expect("No path found");
+      // println!("Searching: {stripped_file_path}"); // uncomment for debugging
       if let Ok(content) = fs::read_to_string(&file_path) {
         for capture in regex.captures_iter(&content) {
           if let Some(matched_var) = capture.get(0) {
@@ -186,7 +190,7 @@ fn find_file_and_dir_matches(repo_path: &str) -> (Vec<(String, String)>, Vec<(St
   {
     let path = entry.path().to_string_lossy().to_string();
     let name = entry.file_name().to_string_lossy().to_string();
-    println!("Searching: {name}"); // TODO: update to debug logs
+    // println!("Searching: {name}"); // uncomment for debugging
     if name.contains(prefix) {
       if entry.file_type().is_file() {
         file_matches.push((path, name));
