@@ -1,31 +1,15 @@
 use clap::{Arg, Command};
 mod setup;
 use setup::setup_project;
-
-// these functions should probably move
-fn extract_client_port(matches: &clap::ArgMatches) {
-  let sub_command = matches
-    .get_one::<String>("client_port")
-    .map_or_else(|| "client_port", |s| s.as_str())
-    .to_string();
-  println!("{sub_command}")
-}
-
-fn extract_server_port(matches: &clap::ArgMatches) {
-  let sub_command = matches
-    .get_one::<String>("server_port")
-    .map_or_else(|| "server_port", |s| s.as_str())
-    .to_string();
-  println!("{sub_command}")
-}
-// see above
+mod start;
+use start::start_application;
+mod client_commands;
 
 fn main() {
   let matches = cli().get_matches();
   match matches.subcommand() {
     Some(("start", sub_matches)) => {
-      extract_client_port(sub_matches);
-      extract_server_port(sub_matches);
+      start_application(sub_matches);
     }
     Some(("setup", sub_matches)) => {
       setup_project(sub_matches);
@@ -42,21 +26,22 @@ pub fn cli() -> Command {
     .subcommand(
       Command::new("setup")
         .about("Setup a brand new project with boilerplate code")
-        .arg(project_name()),
+        .arg(project_root()),
     )
     .subcommand(
       Command::new("start")
         .about("Start the project locally")
+        .arg(project_root())
         .arg(destination_port_client())
         .arg(destination_port_server()),
     )
 }
 
-fn project_name() -> Arg {
+fn project_root() -> Arg {
   Arg::new("repo_root")
     .required(false)
     .default_value(".")
-    .help("the name of your new project")
+    .help("the directory in which you would like to execute the command")
 }
 
 fn destination_port_client() -> Arg {
@@ -66,6 +51,7 @@ fn destination_port_client() -> Arg {
     .hide_default_value(false)
     .help("The port your client app will run on")
     .long("client-port")
+    .short('c')
 }
 
 fn destination_port_server() -> Arg {
@@ -75,4 +61,5 @@ fn destination_port_server() -> Arg {
     .hide_default_value(false)
     .help("The port your server app will run on")
     .long("server-port")
+    .short('s')
 }
