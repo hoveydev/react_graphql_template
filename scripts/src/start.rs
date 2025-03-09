@@ -1,4 +1,5 @@
 use crate::client_commands::execute_client_commands;
+use crate::server_commands::execute_server_commands;
 
 fn extract_directory(matches: &clap::ArgMatches) -> String {
   let directory = matches
@@ -31,7 +32,7 @@ fn start_client(matches: &clap::ArgMatches) -> Result<String, String> {
   match client_port {
     Ok(valid_port) => {
       execute_client_commands(&valid_port, target_directory);
-      Ok(format!("Client started on port: {valid_port}"))
+      Ok(format!("Client script exited"))
     }
     Err(error) => Err(error),
   }
@@ -53,10 +54,11 @@ fn extract_server_port(matches: &clap::ArgMatches) -> Result<String, String> {
 
 fn start_server(matches: &clap::ArgMatches) -> Result<String, String> {
   let server_port = extract_server_port(matches);
+  let target_directory = extract_directory(matches);
   match server_port {
     Ok(valid_port) => {
-      // execute_server_commands(&valid_port, target_directory);
-      Ok(format!("Server started on port: {valid_port}"))
+      execute_server_commands(&valid_port, target_directory);
+      Ok(format!("Server script exited"))
     }
     Err(error) => Err(error),
   }

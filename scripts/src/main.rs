@@ -4,6 +4,7 @@ use setup::setup_project;
 mod start;
 use start::start_application;
 mod client_commands;
+mod server_commands;
 
 fn main() {
   let matches = cli().get_matches();
@@ -57,7 +58,7 @@ fn destination_port_client() -> Arg {
 fn destination_port_server() -> Arg {
   Arg::new("server_port")
     .required(false)
-    .default_value("8080")
+    .default_value("4000")
     .hide_default_value(false)
     .help("The port your server app will run on")
     .long("server-port")

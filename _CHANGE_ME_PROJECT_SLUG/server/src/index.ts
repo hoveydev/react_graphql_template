@@ -17,6 +17,7 @@ async function startApolloServer() {
         },
       };
     },
+    listen: { port: parseInt(process.env.PORT) || 4000 }
   });
   console.log(`🚀 Server listening at: ${url}`);
 }
