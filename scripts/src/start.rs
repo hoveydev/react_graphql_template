@@ -50,8 +50,6 @@ fn extract_server_port(matches: &clap::ArgMatches) -> Result<String, String> {
   Ok(port)
 }
 
-// fn execute_server_commands(port: &str, path_arg: String) {}
-
 fn start_server(matches: &clap::ArgMatches) -> Result<String, String> {
   let server_port = extract_server_port(matches);
   let target_directory = extract_directory(matches);
@@ -69,18 +67,18 @@ pub fn start_application(matches: &clap::ArgMatches) {
   match server_started {
     Ok(success_message) => {
       let client_started = start_client(matches);
-      println!("{success_message}"); // Color later
+      println!("{success_message}");
       match client_started {
         Ok(success_message) => {
-          println!("{success_message}") // Color later
+          println!("{success_message}")
         }
         Err(error_message) => {
-          println!("{error_message}") // Color later
+          println!("{error_message}")
         }
       }
     }
     Err(error_message) => {
-      println!("{error_message}") // Color later
+      println!("{error_message}")
     }
   }
 }

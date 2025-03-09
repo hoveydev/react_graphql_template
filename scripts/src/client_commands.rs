@@ -15,7 +15,11 @@ use terminal_link::Link;
 
 fn print_stdout(child: &mut Child, running_clone: Arc<AtomicBool>, port: &Arc<String>) {
   let stdout = child.stdout.take().unwrap_or_else(|| {
-    eprintln!("{}", "Error: Could not get stdout from process.".red());
+    eprintln!(
+      "{} {}",
+      "Error:".red().bold(),
+      "Could not get stdout from process.".red()
+    );
     process::exit(1)
   });
   let stdout_reader = BufReader::new(stdout);
@@ -52,7 +56,11 @@ fn print_stdout(child: &mut Child, running_clone: Arc<AtomicBool>, port: &Arc<St
 
 fn print_stderr(child: &mut Child) {
   let stderr = child.stderr.take().unwrap_or_else(|| {
-    eprintln!("{}", "Error: Could not get stderr from process.".red());
+    eprintln!(
+      "{} {}",
+      "Error:".red().bold(),
+      "Could not get stderr from process.".red()
+    );
     process::exit(1)
   });
   let stderr_reader = BufReader::new(stderr);
@@ -71,7 +79,11 @@ fn run_threaded_vite(port: &Arc<String>, entry: DirEntry) {
     let port_clone = Arc::clone(&port);
     println!("Found match: {entry:?}");
     env::set_current_dir(entry.path()).unwrap_or_else(|_| {
-      eprintln!("{}", "Error: Could not change directory.".red());
+      eprintln!(
+        "{} {}",
+        "Error:".red().bold(),
+        "Could not change directory.".red()
+      );
       process::exit(1)
     });
 
@@ -88,7 +100,7 @@ fn run_threaded_vite(port: &Arc<String>, entry: DirEntry) {
         .stderr(Stdio::piped())
         .spawn()
         .unwrap_or_else(|_| {
-          eprintln!("{}", "Error: Failed to run Vite.".red());
+          eprintln!("{} {}", "Error:".red().bold(), "Failed to run Vite.".red());
           process::exit(1)
         });
 
@@ -100,7 +112,11 @@ fn run_threaded_vite(port: &Arc<String>, entry: DirEntry) {
     println!("{}", "Starting Vite...".green());
 
     vite_handle.join().unwrap_or_else(|_| {
-      eprintln!("{}", "Error: Vite thread panicked.".red());
+      eprintln!(
+        "{} {}",
+        "Error:".red().bold(),
+        "Vite thread panicked.".red()
+      );
       process::exit(1)
     });
   }

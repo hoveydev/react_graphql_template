@@ -18,7 +18,11 @@ use terminal_link::Link;
 
 fn print_stdout(child: &mut Child, running_clone: Arc<AtomicBool>, port: &Arc<String>) {
   let stdout = child.stdout.take().unwrap_or_else(|| {
-    eprintln!("{}", "Error: Could not get stdout from process.".red());
+    eprintln!(
+      "{} {}",
+      "Error:".red().bold(),
+      "Could not get stdout from process.".red()
+    );
     process::exit(1)
   });
   let stdout_reader = BufReader::new(stdout);
@@ -61,7 +65,11 @@ fn print_stdout(child: &mut Child, running_clone: Arc<AtomicBool>, port: &Arc<St
 
 fn print_stderr(child: &mut Child) {
   let stderr = child.stderr.take().unwrap_or_else(|| {
-    eprintln!("{}", "Error: Could not get stderr from process.".red());
+    eprintln!(
+      "{} {}",
+      "Error:".red().bold(),
+      "Could not get stderr from process.".red()
+    );
     process::exit(1)
   });
   let stderr_reader = BufReader::new(stderr);
@@ -80,18 +88,26 @@ fn print_stderr(child: &mut Child) {
 fn update_env_file(port: &str) -> Result<()> {
   let env_vars: Vec<(String, String)> = dotenvy::from_filename_iter(".env")
     .unwrap_or_else(|_| {
-      eprintln!("Could not find .env file");
+      eprintln!(
+        "{} {}",
+        "Error:".red().bold(),
+        "Could not find .env file".red()
+      );
       process::exit(1)
     })
     .map(|result| {
       result.map_err(|_| {
-        eprintln!("Error parsing .env");
+        eprintln!("{} {}", "Error:".red().bold(), "Could not parse .env".red());
         process::exit(1)
       })
     })
     .collect::<Result<Vec<_>>>()
     .unwrap_or_else(|_| {
-      eprintln!("Could not collect all entries");
+      eprintln!(
+        "{} {}",
+        "Error:".red().bold(),
+        "Could not collect all entries".red()
+      );
       process::exit(1)
     });
 
@@ -104,7 +120,11 @@ fn update_env_file(port: &str) -> Result<()> {
   }
 
   fs::write(".env", new_env_content).unwrap_or_else(|_| {
-    eprintln!("Could not write new content to file.");
+    eprintln!(
+      "{} {}",
+      "Error:".red().bold(),
+      "Could not write new content to file.".red()
+    );
     process::exit(1)
   });
 
@@ -117,7 +137,11 @@ fn run_threaded_graphql(port: &Arc<String>, entry: DirEntry) {
     let port_clone = Arc::clone(&port);
     println!("Found match: {entry:?}");
     env::set_current_dir(entry.path()).unwrap_or_else(|_| {
-      eprintln!("{}", "Error: Could not change directory.".red());
+      eprintln!(
+        "{} {}",
+        "Error:".red().bold(),
+        "Could not change directory.".red()
+      );
       process::exit(1)
     });
     update_env_file(&port_clone).unwrap_or_else(|_| {
