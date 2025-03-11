@@ -37,7 +37,6 @@ fn print_stdout(
     if let Ok(line) = line {
       match line {
         ln if ln.contains("Server listening at:") => {
-          // this will also be the execution point for the client app
           let localhost_with_port = format!(
             "{}{}{}",
             "http://localhost:".bold().underline(),
@@ -50,8 +49,6 @@ fn print_stdout(
             "[GraphQL]".blue(),
             server_link
           );
-          // testing - this works
-          // need client port passed
           execute_client_commands(client_port, "..".to_string());
         }
         ln if ln.contains("restarting due to changes") => {
