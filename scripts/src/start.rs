@@ -1,4 +1,5 @@
-use crate::client_commands::execute_client_commands;
+use colored::Colorize;
+
 use crate::server_commands::execute_server_commands;
 
 fn extract_directory(matches: &clap::ArgMatches) -> String {
@@ -26,19 +27,6 @@ fn extract_client_port(matches: &clap::ArgMatches) -> Result<String, String> {
   Ok(port)
 }
 
-fn start_client(matches: &clap::ArgMatches) -> Result<String, String> {
-  let client_port = extract_client_port(matches);
-  let target_directory = extract_directory(matches);
-  match client_port {
-    Ok(valid_port) => {
-      execute_client_commands(&valid_port, target_directory);
-      Ok(format!("Client script exited"))
-    }
-    Err(error) => Err(error),
-  }
-  // cd to client folder - I think we should be able to run this from anywhere within the SLUG
-}
-
 fn extract_server_port(matches: &clap::ArgMatches) -> Result<String, String> {
   let port = matches
     .get_one::<String>("server_port")
@@ -50,35 +38,20 @@ fn extract_server_port(matches: &clap::ArgMatches) -> Result<String, String> {
   Ok(port)
 }
 
-fn start_server(matches: &clap::ArgMatches) -> Result<String, String> {
+pub fn start_application(matches: &clap::ArgMatches) {
   let server_port = extract_server_port(matches);
+  let client_port = extract_client_port(matches);
   let target_directory = extract_directory(matches);
   match server_port {
-    Ok(valid_port) => {
-      execute_server_commands(&valid_port, target_directory);
-      Ok(format!("Server script exited"))
-    }
-    Err(error) => Err(error),
-  }
-}
-
-pub fn start_application(matches: &clap::ArgMatches) {
-  let server_started = start_server(matches);
-  match server_started {
-    Ok(success_message) => {
-      let client_started = start_client(matches);
-      println!("{success_message}");
-      match client_started {
-        Ok(success_message) => {
-          println!("{success_message}")
-        }
-        Err(error_message) => {
-          println!("{error_message}")
-        }
+    Ok(server_port) => match client_port {
+      Ok(client_port) => {
+        execute_server_commands(&server_port, &client_port, target_directory);
+        println!("Server script exited")
       }
-    }
-    Err(error_message) => {
-      println!("{error_message}")
-    }
+      // client error
+      Err(error) => println!("{} {}", "Error:".red().bold(), error.red()),
+    },
+    // server error
+    Err(error) => println!("{} {}", "Error:".red().bold(), error.red()),
   }
 }

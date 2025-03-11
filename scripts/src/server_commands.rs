@@ -12,11 +12,17 @@ use std::{
   thread,
 };
 
+use crate::client_commands::execute_client_commands;
 use colored::Colorize;
 use dotenvy::Result;
 use terminal_link::Link;
 
-fn print_stdout(child: &mut Child, running_clone: Arc<AtomicBool>, port: &Arc<String>) {
+fn print_stdout(
+  child: &mut Child,
+  running_clone: Arc<AtomicBool>,
+  server_port: &Arc<String>,
+  client_port: &Arc<String>,
+) {
   let stdout = child.stdout.take().unwrap_or_else(|| {
     eprintln!(
       "{} {}",
@@ -31,10 +37,11 @@ fn print_stdout(child: &mut Child, running_clone: Arc<AtomicBool>, port: &Arc<St
     if let Ok(line) = line {
       match line {
         ln if ln.contains("Server listening at:") => {
+          // this will also be the execution point for the client app
           let localhost_with_port = format!(
             "{}{}{}",
             "http://localhost:".bold().underline(),
-            port.bold().underline(),
+            server_port.bold().underline(),
             "/".bold().underline()
           );
           let server_link = Link::new("", &localhost_with_port);
@@ -43,6 +50,9 @@ fn print_stdout(child: &mut Child, running_clone: Arc<AtomicBool>, port: &Arc<St
             "[GraphQL]".blue(),
             server_link
           );
+          // testing - this works
+          // need client port passed
+          execute_client_commands(client_port, "..".to_string());
         }
         ln if ln.contains("restarting due to changes") => {
           println!("{} Server restarting due to changes", "[GraphQL]".blue())
@@ -131,10 +141,11 @@ fn update_env_file(port: &str) -> Result<()> {
   Ok(())
 }
 
-fn run_threaded_graphql(port: &Arc<String>, entry: DirEntry) {
+fn run_threaded_graphql(server_port: &Arc<String>, client_port: &Arc<String>, entry: DirEntry) {
   let target_dir = "server";
   if entry.file_name() == target_dir && entry.path().is_dir() {
-    let port_clone = Arc::clone(&port);
+    let server_port_clone = Arc::clone(&server_port);
+    let client_port_clone = Arc::clone(&client_port);
     println!("Found match: {entry:?}");
     env::set_current_dir(entry.path()).unwrap_or_else(|_| {
       eprintln!(
@@ -144,7 +155,7 @@ fn run_threaded_graphql(port: &Arc<String>, entry: DirEntry) {
       );
       process::exit(1)
     });
-    update_env_file(&port_clone).unwrap_or_else(|_| {
+    update_env_file(&server_port_clone).unwrap_or_else(|_| {
       eprintln!("Could not update .env");
       process::exit(1)
     });
@@ -169,7 +180,12 @@ fn run_threaded_graphql(port: &Arc<String>, entry: DirEntry) {
           process::exit(1)
         });
 
-      print_stdout(&mut child, running_clone, &port_clone);
+      print_stdout(
+        &mut child,
+        running_clone,
+        &server_port_clone,
+        &client_port_clone,
+      );
       print_stderr(&mut child);
     });
 
@@ -187,8 +203,9 @@ fn run_threaded_graphql(port: &Arc<String>, entry: DirEntry) {
   }
 }
 
-pub fn execute_server_commands(port: &str, path_arg: String) {
-  let port = Arc::new(port.to_string());
+pub fn execute_server_commands(server_port: &str, client_port: &str, path_arg: String) {
+  let server_port = Arc::new(server_port.to_string());
+  let client_port = Arc::new(client_port.to_string());
 
   if let Ok(current_dir) = current_dir() {
     let path_from_string = PathBuf::from(path_arg);
@@ -201,7 +218,7 @@ pub fn execute_server_commands(port: &str, path_arg: String) {
     if let Ok(read_selected_dir) = selected_dir.read_dir() {
       for entry in read_selected_dir {
         if let Ok(entry) = entry {
-          run_threaded_graphql(&port, entry);
+          run_threaded_graphql(&server_port, &client_port, entry);
         }
       }
     } else {
