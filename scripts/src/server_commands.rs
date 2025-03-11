@@ -138,66 +138,96 @@ fn update_env_file(port: &str) -> Result<()> {
   Ok(())
 }
 
-fn run_threaded_graphql(server_port: &Arc<String>, client_port: &Arc<String>, entry: DirEntry) {
-  let target_dir = "server";
-  if entry.file_name() == target_dir && entry.path().is_dir() {
-    let server_port_clone = Arc::clone(&server_port);
-    let client_port_clone = Arc::clone(&client_port);
-    println!("Found match: {entry:?}");
-    env::set_current_dir(entry.path()).unwrap_or_else(|_| {
-      eprintln!(
-        "{} {}",
-        "Error:".red().bold(),
-        "Could not change directory.".red()
-      );
-      process::exit(1)
-    });
-    update_env_file(&server_port_clone).unwrap_or_else(|_| {
-      eprintln!("Could not update .env");
-      process::exit(1)
-    });
+fn find_root_in_path(template_root: &str, current_dir: &DirEntry) -> PathBuf {
+  let marker_root = ".projectroot";
+  let mut current_path = current_dir.path();
 
-    let running = Arc::new(AtomicBool::new(true));
-    let running_clone = running.clone();
-
-    // Spawn GraphQL in a separate thread
-    let graphql_handle = thread::spawn(move || {
-      let mut child = Command::new("npm")
-        .arg("run")
-        .arg("dev")
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .unwrap_or_else(|_| {
-          eprintln!(
-            "{} {}",
-            "Error:".red().bold(),
-            "Failed to run GraphQL server.".red()
-          );
-          process::exit(1)
-        });
-
-      print_stdout(
-        &mut child,
-        running_clone,
-        &server_port_clone,
-        &client_port_clone,
-      );
-      print_stderr(&mut child);
-    });
-
-    // First executed line
-    println!("{}", "Starting GraphQL...".green());
-
-    graphql_handle.join().unwrap_or_else(|_| {
-      eprintln!(
-        "{} {}",
-        "Error:".red().bold(),
-        "GraphQL thread panicked.".red()
-      );
-      process::exit(1)
-    });
+  while current_path.pop() {
+    let template_path = current_path.join(template_root);
+    if template_path.exists() && template_path.is_dir() {
+      if let Ok(entries) = fs::read_dir(template_path) {
+        for entry in entries {
+          if let Ok(entry) = entry {
+            let path = entry.path();
+            if path.is_dir() {
+              if path.join(marker_root).exists() {
+                return path;
+              }
+            }
+          }
+        }
+      }
+    }
   }
+
+  eprintln!(
+    "{} {}",
+    "Error:".red().bold(),
+    "Project root does not exist within current selected directory"
+  );
+  process::exit(1)
+}
+
+fn run_threaded_graphql(server_port: &Arc<String>, client_port: &Arc<String>, entry: DirEntry) {
+  let template_root = "react_graphql_template";
+  let root_path = find_root_in_path(template_root, &entry);
+  let target_dir = root_path.join("server");
+  let server_port_clone = Arc::clone(&server_port);
+  let client_port_clone = Arc::clone(&client_port);
+  println!("Found match: {target_dir:?}");
+  env::set_current_dir(target_dir).unwrap_or_else(|_| {
+    eprintln!(
+      "{} {}",
+      "Error:".red().bold(),
+      "Could not change directory.".red()
+    );
+    process::exit(1)
+  });
+  update_env_file(&server_port_clone).unwrap_or_else(|_| {
+    eprintln!("Could not update .env");
+    process::exit(1)
+  });
+
+  let running = Arc::new(AtomicBool::new(true));
+  let running_clone = running.clone();
+
+  // Spawn GraphQL in a separate thread
+  let graphql_handle = thread::spawn(move || {
+    let mut child = Command::new("npm")
+      .arg("run")
+      .arg("dev")
+      .stdout(Stdio::piped())
+      .stderr(Stdio::piped())
+      .spawn()
+      .unwrap_or_else(|_| {
+        eprintln!(
+          "{} {}",
+          "Error:".red().bold(),
+          "Failed to run GraphQL server.".red()
+        );
+        process::exit(1)
+      });
+
+    print_stdout(
+      &mut child,
+      running_clone,
+      &server_port_clone,
+      &client_port_clone,
+    );
+    print_stderr(&mut child);
+  });
+
+  // First executed line
+  println!("{}", "Starting GraphQL...".green());
+
+  graphql_handle.join().unwrap_or_else(|_| {
+    eprintln!(
+      "{} {}",
+      "Error:".red().bold(),
+      "GraphQL thread panicked.".red()
+    );
+    process::exit(1)
+  });
 }
 
 pub fn execute_server_commands(server_port: &str, client_port: &str, path_arg: String) {
