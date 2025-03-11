@@ -7,8 +7,8 @@
     "clean": "rm -rf ./build/*",
     "compile": "tsc",
     "copy-files": "shx cp -R ./src/schemas/ ./build",
-    "start": "npm run generate && npm run clean && npm run compile && npm run copy-files && nodemon ./build/index.js",
-    "dev": "npm run generate && ts-node-dev --respawn ./src/index.ts",
+    "start": "npm run generate && npm run clean && npm run compile && npm run copy-files && nodemon --env-file=.env ./build/index.js",
+    "dev": "npm run generate && ts-node-dev --respawn --env-file=.env ./src/index.ts",
     "generate": "graphql-codegen"
   },
   "keywords": [],

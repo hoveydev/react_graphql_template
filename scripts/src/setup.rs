@@ -66,6 +66,7 @@ fn find_variables_and_rename(project_slug: String) {
 }
 
 pub fn setup_project(matches: &clap::ArgMatches) {
+  // do we want to install dependencies as part of this as well? - probably
   let sub_command = matches
     .get_one::<String>("repo_root")
     .map_or_else(|| ".", |s| s.as_str())
