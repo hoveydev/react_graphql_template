@@ -1,7 +1,27 @@
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
+import { useQuery, gql } from '@apollo/client'
 import './App.css'
+
+const _CHANGE_ME_FIRST_QUERY = gql`
+  query _CHANGE_ME_FIRST_TYPE {
+    type {
+      fieldOne
+      fieldTwo
+    }
+  }
+`;
+
+function DisplayData() {
+  const { loading, error, data } = useQuery(_CHANGE_ME_FIRST_QUERY);
+
+  if (loading) return <p>Loading...</p>
+  if (error) return <p>Error: {error.message}</p>
+
+  return <div><div className='field-one'><b>{data.type.fieldOne}</b></div>
+    <div className='field-two'><b>{data.type.fieldTwo}</b></div></div>
+}
 
 function App() {
   const [count, setCount] = useState(0)
@@ -24,6 +44,10 @@ function App() {
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>
+      </div>
+      <div className='card'>
+        This is where the placeholder GQL data will go!
+        <DisplayData />
       </div>
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more

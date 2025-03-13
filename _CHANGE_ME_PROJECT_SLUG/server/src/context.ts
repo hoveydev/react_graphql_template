@@ -1,5 +1,5 @@
 // TODO: import correct API classname
-import { _CHANGE_ME_FIRST_API } from "./datasources/api";
+import { _CHANGE_ME_FIRST_API } from "./datasources/_CHANGE_ME_FIRST_API";
 
 export type DataSourceContext = {
   dataSources: {
