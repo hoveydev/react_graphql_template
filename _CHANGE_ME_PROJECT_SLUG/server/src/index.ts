@@ -3,7 +3,7 @@ import { startStandaloneServer } from '@apollo/server/standalone';
 import typeDefs from './schemas';
 import resolvers from './resolvers';
 // TODO: Import correct classname
-import { _CHANGE_ME_FIRST_API } from './datasources/api';
+import { _CHANGE_ME_FIRST_API } from './datasources/_CHANGE_ME_FIRST_API';
 
 async function startApolloServer() {
   const server = new ApolloServer({ typeDefs, resolvers });
