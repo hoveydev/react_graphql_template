@@ -1,12 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client'
-import './index.css'
-import App from './App.tsx'
+import { StrictMode } from 'react';
+
+import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
+import { createRoot } from 'react-dom/client';
+
+import './index.css';
+import App from './App.tsx';
 
 const client = new ApolloClient({
   uri: import.meta.env.VITE_GRAPHQL_ENDPOINT,
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache()
 });
 
 createRoot(document.getElementById('root')!).render(
@@ -14,5 +16,5 @@ createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <App />
     </StrictMode>
-  </ApolloProvider>,
-)
+  </ApolloProvider>
+);

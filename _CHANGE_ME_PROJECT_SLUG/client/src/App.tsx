@@ -1,8 +1,11 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import { useQuery, gql } from '@apollo/client'
-import './App.css'
+import { useState } from 'react';
+
+import { useQuery, gql } from '@apollo/client';
+
+import reactLogo from './assets/react.svg';
+
+import viteLogo from '/vite.svg';
+import './App.css';
 
 const _CHANGE_ME_FIRST_QUERY = gql`
   query _CHANGE_ME_FIRST_TYPE {
@@ -13,18 +16,35 @@ const _CHANGE_ME_FIRST_QUERY = gql`
   }
 `;
 
-function DisplayData() {
+const DisplayData = () => {
   const { loading, error, data } = useQuery(_CHANGE_ME_FIRST_QUERY);
 
-  if (loading) return <p>Loading...</p>
-  if (error) return <p>Error: {error.message}</p>
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+  if (error) {
+    return <p>Error: {error.message}</p>;
+  }
 
-  return <div><div className='field-one'><b>{data.type.fieldOne}</b></div>
-    <div className='field-two'><b>{data.type.fieldTwo}</b></div></div>
-}
+  return (
+    <div>
+      <div className="field-one">
+        <b>{data.type.fieldOne}</b>
+      </div>
+      <div className="field-two">
+        <b>{data.type.fieldTwo}</b>
+      </div>
+    </div>
+  );
+};
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const [count, setCount] = useState(0);
+  const incrementClick = () => {
+    return setCount((prevCount) => {
+      return prevCount + 1;
+    });
+  };
 
   return (
     <>
@@ -38,14 +58,12 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
+        <button onClick={incrementClick}>count is {count}</button>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>
       </div>
-      <div className='card'>
+      <div className="card">
         This is where the placeholder GQL data will go!
         <DisplayData />
       </div>
@@ -53,7 +71,7 @@ function App() {
         Click on the Vite and React logos to learn more
       </p>
     </>
-  )
-}
+  );
+};
 
-export default App
+export default App;
