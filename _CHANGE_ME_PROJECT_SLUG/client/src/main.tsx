@@ -2,6 +2,8 @@ import { StrictMode } from 'react';
 
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import { createRoot } from 'react-dom/client';
+import { router } from './router.tsx'
+import { RouterProvider } from 'react-router-dom'
 
 import './index.css';
 import App from './App.tsx';
@@ -14,7 +16,7 @@ const client = new ApolloClient({
 createRoot(document.getElementById('root')!).render(
   <ApolloProvider client={client}>
     <StrictMode>
-      <App />
+      <RouterProvider router={router} />
     </StrictMode>
   </ApolloProvider>
 );
