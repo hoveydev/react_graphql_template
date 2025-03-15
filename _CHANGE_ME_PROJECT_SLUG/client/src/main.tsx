@@ -2,11 +2,11 @@ import { StrictMode } from 'react';
 
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import { createRoot } from 'react-dom/client';
-import { router } from './router.tsx'
-import { RouterProvider } from 'react-router-dom'
+import { RouterProvider } from 'react-router-dom';
+
+import { router } from './router.tsx';
 
 import './index.css';
-import App from './App.tsx';
 
 const client = new ApolloClient({
   uri: import.meta.env.VITE_GRAPHQL_ENDPOINT,
