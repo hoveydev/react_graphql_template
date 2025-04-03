@@ -1,4 +1,3 @@
-// TODO: change file name
 import { RESTDataSource } from '@apollo/datasource-rest';
 
 import { _CHANGE_ME_FIRST_TYPE } from '../types';
