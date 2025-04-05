@@ -65,7 +65,36 @@ fn find_variables_and_rename(project_slug: String) {
   }
   println!("Renaming completed!");
 
+  // install dependencies for both client and server
+  install_dependencies();
   generate_types();
+}
+
+fn install_dependencies() {
+  let cur_dir = current_dir().unwrap();
+  env::set_current_dir(cur_dir.join("_CHANGE_ME_PROJECT_SLUG/client")).unwrap();
+  let mut child = Command::new("npm");
+  child.arg("install");
+  child.output().unwrap_or_else(|_| {
+    eprintln!(
+      "{} {}",
+      "Error:".red().bold(),
+      "Failed to install client dependencies".red()
+    );
+    process::exit(1)
+  });
+
+  env::set_current_dir(cur_dir.join("_CHANGE_ME_PROJECT_SLUG/server")).unwrap();
+  let mut child = Command::new("npm");
+  child.arg("install");
+  child.output().unwrap_or_else(|_| {
+    eprintln!(
+      "{} {}",
+      "Error:".red().bold(),
+      "Failed to install server dependencies".red()
+    );
+    process::exit(1)
+  });
 }
 
 fn generate_types() {
