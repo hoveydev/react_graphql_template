@@ -74,7 +74,7 @@ fn find_variables_and_rename(project_slug: String) {
 
   // install dependencies for both client and server
   install_dependencies(new_project_slug_name);
-  generate_types(new_project_slug_name); // need to change because of project rename
+  generate_types(new_project_slug_name);
 }
 
 fn create_new_git_root() {
