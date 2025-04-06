@@ -11,6 +11,8 @@ use walkdir::WalkDir;
 
 fn find_variables_and_rename(project_slug: String) {
   println!("{}", "Found Project Slug!".green());
+  create_new_git_root();
+  let mut new_project_slug_name: Option<&String> = None;
   let variable_regex = Regex::new(r"\b_CHANGE_ME_\w+\b").unwrap();
   let file_content_matches = find_var_matches(&project_slug, &variable_regex);
   let (file_matches, dir_matches) = find_file_and_dir_matches(&project_slug);
@@ -58,7 +60,12 @@ fn find_variables_and_rename(project_slug: String) {
     if let Some(new_name) = rename_map.get(&var_name) {
       let new_path = dir_path.replace(&var_name, new_name);
       match fs::rename(&dir_path, &new_path) {
-        Ok(()) => println!("√ Renamed directory {var_name} to {new_name}"),
+        Ok(()) => {
+          if var_name == "CHANGE_ME_PROJECT_SLUG" {
+            new_project_slug_name = Some(new_name);
+          }
+          println!("√ Renamed directory {var_name} to {new_name}")
+        }
         Err(_) => eprintln!("Failed to rename directory {var_name} to {new_name}"),
       }
     }
@@ -66,13 +73,52 @@ fn find_variables_and_rename(project_slug: String) {
   println!("Renaming completed!");
 
   // install dependencies for both client and server
-  install_dependencies();
-  generate_types();
+  install_dependencies(new_project_slug_name);
+  generate_types(new_project_slug_name); // need to change because of project rename
 }
 
-fn install_dependencies() {
+fn create_new_git_root() {
+  println!("Updating git root...");
+  let mut child_one = Command::new("mv");
+  child_one.arg(".git");
+  child_one.arg("_CHANGE_ME_PROJECT_SLUG/.git");
+  child_one.output().unwrap_or_else(|_| {
+    eprintln!(
+      "{} {}",
+      "Error:".red().bold(),
+      "Failed to move .git directory".red()
+    );
+    process::exit(1)
+  });
+  let mut child_two = Command::new("git");
+  child_two.arg("config");
+  child_two.arg("--local");
+  child_two.arg("child.worktree");
+  child_two.arg("../../");
+  child_two.output().unwrap_or_else(|_| {
+    eprintln!(
+      "{} {}",
+      "Error:".red().bold(),
+      "Failed to reconfigure git".red()
+    );
+    process::exit(1)
+  });
+
+  println!("{}", "New git root created".green())
+}
+
+fn install_dependencies(new_project_slug: Option<&String>) {
+  let new_project_slug = new_project_slug.unwrap_or_else(|| {
+    eprintln!(
+      "{} {}",
+      "Error:".red().bold(),
+      "Failed to get new project slug name".red()
+    );
+    process::exit(1)
+  });
+  println!("Installing client dependencies...");
   let cur_dir = current_dir().unwrap();
-  env::set_current_dir(cur_dir.join("_CHANGE_ME_PROJECT_SLUG/client")).unwrap();
+  env::set_current_dir(cur_dir.join(new_project_slug.to_string() + "/client")).unwrap();
   let mut child = Command::new("npm");
   child.arg("install");
   child.output().unwrap_or_else(|_| {
@@ -84,7 +130,8 @@ fn install_dependencies() {
     process::exit(1)
   });
 
-  env::set_current_dir(cur_dir.join("_CHANGE_ME_PROJECT_SLUG/server")).unwrap();
+  println!("Installing sevrer dependencies...");
+  env::set_current_dir(cur_dir.join(new_project_slug.to_string() + "/server")).unwrap();
   let mut child = Command::new("npm");
   child.arg("install");
   child.output().unwrap_or_else(|_| {
@@ -97,9 +144,17 @@ fn install_dependencies() {
   });
 }
 
-fn generate_types() {
+fn generate_types(new_project_slug: Option<&String>) {
+  let new_project_slug = new_project_slug.unwrap_or_else(|| {
+    eprintln!(
+      "{} {}",
+      "Error:".red().bold(),
+      "Failed to get new project slug name".red()
+    );
+    process::exit(1)
+  });
   let cur_dir = current_dir().unwrap();
-  env::set_current_dir(cur_dir.join("_CHANGE_ME_PROJECT_SLUG/server")).unwrap();
+  env::set_current_dir(cur_dir.join(new_project_slug.to_string() + "/server")).unwrap();
   let mut child = Command::new("npm");
   child.arg("run").arg("generate");
   child.output().unwrap_or_else(|_| {
