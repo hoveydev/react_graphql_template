@@ -1,8 +1,8 @@
 // TODO: import correct API classname
-import { _CHANGE_ME_FIRST_API } from './datasources/_CHANGE_ME_FIRST_API';
+import { _CHANGE_ME_FIRST_API_CLASS } from './datasources/_CHANGE_ME_FIRST_API_FILE';
 
 export type DataSourceContext = {
   dataSources: {
-    _CHANGE_ME_FIRST_API_DATASOURCE: _CHANGE_ME_FIRST_API;
+    _CHANGE_ME_FIRST_API_DATASOURCE: _CHANGE_ME_FIRST_API_CLASS;
   };
 };

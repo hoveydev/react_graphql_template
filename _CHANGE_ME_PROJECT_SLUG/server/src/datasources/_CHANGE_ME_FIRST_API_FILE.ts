@@ -8,7 +8,7 @@ const mockData: _CHANGE_ME_FIRST_TYPE = {
   fieldTwo: 'data for field two'
 };
 
-export class _CHANGE_ME_FIRST_API extends RESTDataSource {
+export class _CHANGE_ME_FIRST_API_CLASS extends RESTDataSource {
   baseURL = '_CHANGE_ME_REST_URL';
 
   getData() {

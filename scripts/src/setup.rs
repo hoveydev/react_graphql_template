@@ -12,8 +12,8 @@ use walkdir::WalkDir;
 fn find_variables_and_rename(project_slug: String) {
   println!("{}", "Found Project Slug!".green());
   create_new_git_root();
-  let mut new_project_slug_name: Option<&String> = None;
-  let variable_regex = Regex::new(r"\b_CHANGE_ME_\w+\b").unwrap();
+  let mut new_project_slug_name: Option<String> = None;
+  let variable_regex = Regex::new(r"_CHANGE_ME_[a-zA-Z0-9_]+").unwrap();
   let file_content_matches = find_var_matches(&project_slug, &variable_regex);
   let (file_matches, dir_matches) = find_file_and_dir_matches(&project_slug);
   if file_content_matches.is_empty() && file_matches.is_empty() && dir_matches.is_empty() {
@@ -39,6 +39,8 @@ fn find_variables_and_rename(project_slug: String) {
       rename_map.insert(var_name.clone(), new_name);
     }
   }
+  // println!("Found variables to rename: {:?}", rename_map);
+  // uncomment above for debugging
   for (file_path, var_name) in file_content_matches {
     if let Some(new_name) = rename_map.get(&var_name) {
       rename_variable(&file_path, &var_name, new_name);
@@ -73,8 +75,8 @@ fn find_variables_and_rename(project_slug: String) {
       let new_path = dir_path.replace(&var_name, new_name);
       match fs::rename(&dir_path, &new_path) {
         Ok(()) => {
-          if var_name == "CHANGE_ME_PROJECT_SLUG" {
-            new_project_slug_name = Some(new_name);
+          if var_name == "_CHANGE_ME_PROJECT_SLUG" {
+            new_project_slug_name = Some(new_name.clone());
           }
           println!(
             "{} {} {} {}",
@@ -97,8 +99,8 @@ fn find_variables_and_rename(project_slug: String) {
   println!("Renaming completed!");
 
   // install dependencies for both client and server
-  install_dependencies(new_project_slug_name);
-  generate_types(new_project_slug_name);
+  install_dependencies(new_project_slug_name.clone());
+  generate_types();
 }
 
 fn create_new_git_root() {
@@ -131,7 +133,7 @@ fn create_new_git_root() {
   println!("{}", "New git root created".green())
 }
 
-fn install_dependencies(new_project_slug: Option<&String>) {
+fn install_dependencies(new_project_slug: Option<String>) {
   let new_project_slug = new_project_slug.unwrap_or_else(|| {
     eprintln!(
       "{} {}",
@@ -154,7 +156,7 @@ fn install_dependencies(new_project_slug: Option<&String>) {
     process::exit(1)
   });
 
-  println!("Installing sevrer dependencies...");
+  println!("Installing server dependencies...");
   env::set_current_dir(cur_dir.join(new_project_slug.to_string() + "/server")).unwrap();
   let mut child = Command::new("npm");
   child.arg("install");
@@ -168,17 +170,8 @@ fn install_dependencies(new_project_slug: Option<&String>) {
   });
 }
 
-fn generate_types(new_project_slug: Option<&String>) {
-  let new_project_slug = new_project_slug.unwrap_or_else(|| {
-    eprintln!(
-      "{} {}",
-      "Error:".red().bold(),
-      "Failed to get new project slug name".red()
-    );
-    process::exit(1)
-  });
-  let cur_dir = current_dir().unwrap();
-  env::set_current_dir(cur_dir.join(new_project_slug.to_string() + "/server")).unwrap();
+fn generate_types() {
+  println!("Generating types...");
   let mut child = Command::new("npm");
   child.arg("run").arg("generate");
   child.output().unwrap_or_else(|_| {
@@ -318,11 +311,15 @@ fn find_file_and_dir_matches(repo_path: &str) -> (Vec<(String, String)>, Vec<(St
     let path = entry.path().to_string_lossy().to_string();
     let name = entry.file_name().to_string_lossy().to_string();
     // println!("Searching: {name}"); // uncomment for debugging
-    if name.contains(prefix) {
+    if name.starts_with(prefix) {
       if entry.file_type().is_file() {
-        file_matches.push((path, name));
+        let (var_part, _) = name.split_once('.').map_or_else(
+          || (name.to_string(), String::new()),
+          |(v, e)| (v.to_string(), format!(".{}", e)),
+        );
+        file_matches.push((path, var_part));
       } else if entry.file_type().is_dir() {
-        dir_matches.push((path, name));
+        dir_matches.push((path, name.to_string()));
       }
     }
   }
@@ -345,7 +342,8 @@ fn prompt_for_new_name(old_name: &str) -> String {
 fn rename_variable(file_path: &str, old_name: &str, new_name: &str) {
   if let Ok(content) = fs::read_to_string(file_path) {
     let new_content = content.replace(old_name, new_name);
-    match fs::rename(&file_path, &new_content) {
+    match fs::write(file_path, new_content) {
+      // Changed from fs::rename to fs::write
       Ok(()) => println!(
         "{} {} {} {}",
         "√ Renamed variable".green(),
