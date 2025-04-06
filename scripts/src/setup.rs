@@ -48,8 +48,11 @@ fn find_variables_and_rename(project_slug: String) {
     if let Some(new_name) = rename_map.get(&var_name) {
       let new_path = file_path.replace(&var_name, new_name);
       match fs::rename(&file_path, &new_path) {
-        Ok(()) => println!("√ Renamed file {var_name} to {new_name}"),
-        Err(_) => eprintln!("Failed to rename file: {var_name} to {new_name}"),
+        Ok(()) => println!("{}", "√ Renamed file {var_name} to {new_name}".green()),
+        Err(_) => eprintln!(
+          "{}",
+          "Failed to rename file: {var_name} to {new_name}".red()
+        ),
       }
     }
   }
@@ -64,9 +67,12 @@ fn find_variables_and_rename(project_slug: String) {
           if var_name == "CHANGE_ME_PROJECT_SLUG" {
             new_project_slug_name = Some(new_name);
           }
-          println!("√ Renamed directory {var_name} to {new_name}")
+          println!("{}", "√ Renamed directory {var_name} to {new_name}".green())
         }
-        Err(_) => eprintln!("Failed to rename directory {var_name} to {new_name}"),
+        Err(_) => eprintln!(
+          "{}",
+          "Failed to rename directory {var_name} to {new_name}".red()
+        ),
       }
     }
   }
