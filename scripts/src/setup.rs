@@ -328,8 +328,11 @@ fn rename_variable(file_path: &str, old_name: &str, new_name: &str) {
   if let Ok(content) = fs::read_to_string(file_path) {
     let new_content = content.replace(old_name, new_name);
     match fs::rename(&file_path, &new_content) {
-      Ok(()) => println!("√ Renamed variable {old_name} to {new_name}"),
-      Err(_) => eprintln!("Failed to rename variable {old_name} to {new_name}"),
+      Ok(()) => println!("{}", "√ Renamed variable {old_name} to {new_name}".green()),
+      Err(_) => eprintln!(
+        "{}",
+        "Failed to rename variable {old_name} to {new_name}".red()
+      ),
     }
   }
 }
