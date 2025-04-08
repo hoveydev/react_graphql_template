@@ -19,7 +19,3 @@ Something I have learned to love about Rust is the fact that it “just works”
 In addition to this, one of the best things about Rust is the documentation. The Rust language is thoroughly documented and rarely do I consult StackOverflow or Reddit (in some desperate cases) to find the answer to a problem I am having. [The Rust Book](https://doc.rust-lang.org/book/) has been incredibly helpful and is organized almost perfectly.
 
 That being said, this was more of a learning opportunity for me. As stated before, I still consider myself a noob to programming in Rust and this CLI has really helped me hone my skills. I have also found myself utilizing a lot of the lessons I learned in Rust in my work in Swift. There have been some stark similarities with that language as well.
-
-# Deep-Dive
-
-TBD
